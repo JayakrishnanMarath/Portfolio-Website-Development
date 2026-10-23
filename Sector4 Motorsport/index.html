@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sector4 Motorsport // The Sim Racing Paddock</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="loading-active">
+
+  <!-- Interactive Telemetry Intro / Preloader Screen -->
+<div id="loader-overlay" class="loader-overlay">
+  <!-- Ignition / Start Overlay -->
+  <div id="loaderStartScreen" class="loader-start-screen">
+    <div class="start-box">
+      <div class="hud-blink-dot"></div>
+      <p class="start-title">SECTOR4 TELEMETRY ACQUISITION</p>
+      <button id="btnStartTelemetry" class="btn btn-primary start-btn">
+        <span>START SESSION // AUDIO ENABLE</span>
+      </button>
+      <span class="start-hint">CLICK ANYWHERE OR PRESS ANY KEY TO INITIALIZE</span>
+    </div>
+  </div>
+
+  <div class="loader-content" id="loaderContent" style="display: none;">
+    <div class="loader-hud-header">
+      <div class="loader-brand">
+        <span class="hud-blink-dot"></span>
+        <span>SECTOR4 // LIVE TELEMETRY ACQUISITION</span>
+      </div>
+      <div class="loader-telemetry-readout">
+        <span id="loaderGear">GEAR <strong>N</strong></span>
+        <span id="loaderSpeed">SPEED <strong>000 KM/H</strong></span>
+        <span id="loaderRPM">RPM <strong>0000</strong></span>
+      </div>
+    </div>
+
+    <!-- Telemetry Waveform Stage -->
+    <div class="loader-canvas-wrapper">
+      <canvas id="loaderCanvas" width="900" height="240"></canvas>
+      <div class="loader-markers">
+        <span class="m-point">01 ACCEL [25%]</span>
+        <span class="m-point">02 BRAKE PEAK [100%]</span>
+        <span class="m-point">03 TRAIL BRAKE DECAY</span>
+        <span class="m-point">04 FULL ACCELERATION [100%]</span>
+      </div>
+    </div>
+
+    <div class="loader-status-bar">
+      <div class="status-track">
+        <div id="loaderProgressBar" class="status-fill"></div>
+      </div>
+      <div class="status-label-row">
+        <span id="loaderPhaseText">INITIALIZING ECU TELEMETRY FEED...</span>
+        <span id="loaderPercent">0%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Floating Right Vertical Sidebar Dock (Icons Only) -->
+  <aside class="right-vertical-nav" aria-label="Quick Navigation and Platform Dock">
+    <div class="dock-inner">
+      <a href="#hero" class="dock-item logo-item sound-btn nav-link-btn" data-target="hero" title="Sector4 Home">
+        <img src="logo.png" alt="Sector4 Logo" class="dock-logo">
+      </a>
+      <div class="dock-divider"></div>
+      
+      <!-- ACC (Steering / Competizione) -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-acc" title="Assetto Corsa Competizione">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v4"></path>
+          <path d="M12 17v4"></path>
+          <path d="m4.93 4.93 2.83 2.83"></path>
+          <path d="m16.24 16.24 2.83 2.83"></path>
+          <circle cx="12" cy="12" r="2.5"></circle>
+        </svg>
+      </button>
+
+      <!-- AC (Assetto Corsa Racing Flag) -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-ac" title="Assetto Corsa Mods & Liveries">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+          <line x1="4" y1="22" x2="4" y2="15"></line>
+        </svg>
+      </button>
+
+      <!-- 1st Button: LMU / WEC Endurance Trophy -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-endurance" title="Le Mans Ultimate / Driver Swap Endurance">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path>
+          <path d="M6 4h12v5a6 6 0 0 1-12 0V4z"></path>
+        </svg>
+      </button>
+
+      <!-- 2nd Button: LFM Daily Splits Stopwatch -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-lfm" title="Low Fuel Motorsport Daily Races">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"></circle>
+          <path d="M12 9v4l2.5 2.5"></path>
+          <path d="M5 3 2 6"></path>
+          <path d="m22 6-3-3"></path>
+          <path d="M12 2v2"></path>
+        </svg>
+      </button>
+
+      <!-- 3rd Button: F1 / Paddock Speed Gauge -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-f1" title="EA Sports F1 & Watch Parties">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 14v-4"></path>
+          <path d="M3.34 17a10 10 0 1 1 17.32 0"></path>
+        </svg>
+      </button>
+
+      <div class="dock-divider"></div>
+
+      <!-- Telemetry Section Jump -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="paddock" title="Telemetry & Accreplays.com">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+      </button>
+
+      <!-- Fuel Calculator Jump -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="fuel-planner" title="Race Fuel Strategy Calculator">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 22h12"></path>
+          <path d="M4 9h10"></path>
+          <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
+          <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
+        </svg>
+      </button>
+
+      <div class="dock-divider"></div>
+
+      <!-- Instagram External Link -->
+      <a href="https://instagram.com/sectorfour.motorsport" target="_blank" rel="noopener noreferrer" class="dock-item sound-btn instagram-dock" title="Instagram: @sectorfour.motorsport">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+      </a>
+
+      <!-- Discord External Link -->
+      <a href="https://discord.gg/SvsFxPD3V" target="_blank" rel="noopener noreferrer" class="dock-item sound-btn discord-dock" title="Join Sector4 Discord">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+      </a>
+    </div>
+  </aside>
+
+  <main class="page-container">
+
+    <!-- Hero Section: Centered Big Text with Kinetic Reveal Animation -->
+    <section class="hero-section" id="hero">
+      
+      <div class="hero-center-header">
+        <div class="block-typography-wrapper">
+          <h1 class="block-title animate-title" id="mainBlockTitle">
+            <span class="word-sector">SECTOR</span> <span class="word-four">4</span>
+          </h1>
+          <div class="block-subtitle animate-sub">MOTORSPORT</div>
+        </div>
+        <div class="hero-tagline animate-fade">
+          <span class="tagline-dot"></span>
+          <span>THE SIM RACING PADDOCK</span>
+        </div>
+      </div>
+
+      <!-- Centered Action Box & Buttons -->
+      <div class="hero-center-actions animate-fade-delay">
+        <div class="terminal-action-box">
+          <div class="terminal-buttons">
+            <a href="https://discord.gg/SvsFxPD3V" target="_blank" rel="noopener noreferrer" class="btn btn-primary sound-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+              <span>Join Discord</span>
+            </a>
+            <button class="btn btn-secondary sound-btn nav-link-btn" data-target="what-we-do">
+              <span>Know about us</span>
+            </button>
+          </div>
+          <div class="terminal-copy-hint">
+            <code>discord.gg/SvsFxPD3V</code>
+            <button class="copy-link-btn sound-btn" id="copyBtn" title="Copy Discord Invite">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-desc-centered animate-fade-delay2">
+        <p class="lead-text">
+          We race on Low Fuel Motorsport across ACC and Assetto Corsa. We run daily splits, team endurance races with driver swaps, and practice servers.
+        </p>
+        <p class="sub-text">
+          We also share setups, compare telemetry, and watch F1 and WEC together. Anyone who wants to race clean is welcome.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- What We Do Section -->
+    <section class="section-container" id="what-we-do">
+      <div class="section-header">
+        <div class="section-tag">OVERVIEW</div>
+        <h2 class="section-title">WHAT WE DO</h2>
+      </div>
+
+      <div class="leaderboard-table">
+        <div class="table-header-row">
+          <div class="col-num">#</div>
+          <div class="col-main">ACTIVITY / SYSTEM</div>
+          <div class="col-desc">DETAILS</div>
+          <div class="col-status">STATUS</div>
+        </div>
+
+        <!-- 2nd Button Target: LFM Daily Splits -->
+        <div class="table-row" id="row-lfm">
+          <div class="col-num">01</div>
+          <div class="col-main">
+            <span class="row-title">Daily LFM Racing</span>
+            <span class="row-tag">Sprint & Ranked</span>
+          </div>
+          <div class="col-desc">We run scheduled LFM daily splits together. Voice chat is open for strategy, traffic calls, and race debriefs.</div>
+          <div class="col-status"><span class="badge-active">ACTIVE DAILY</span></div>
+        </div>
+
+        <!-- 1st Button Target: Driver Swap Endurance / LMU -->
+        <div class="table-row" id="row-endurance">
+          <div class="col-num">02</div>
+          <div class="col-main">
+            <span class="row-title">Driver Swap Endurance</span>
+            <span class="row-tag">LFM 60, 180 & 270 Mins</span>
+          </div>
+          <div class="col-desc">We do 60, 180, and 270 minutes endurance races on Low Fuel Motorsport. We pair drivers based on pace and manage stint rotations.</div>
+          <div class="col-status"><span class="badge-active">WEEKEND RUNS</span></div>
+        </div>
+
+        <!-- Ticketing System -->
+        <div class="table-row" id="row-tickets">
+          <div class="col-num">03</div>
+          <div class="col-main">
+            <span class="row-title">Incident Reporting Bot</span>
+            <span class="row-tag">Discord Ticketing</span>
+          </div>
+          <div class="col-desc">Our dedicated ticketing system lets you save race IDs, lap numbers, and replay video links right after your race so reports are ready when the 3-hour LFM window opens.</div>
+          <div class="col-status"><span class="badge-tool">BOT READY</span></div>
+        </div>
+
+        <!-- Assetto Corsa & Mods Target -->
+        <div class="table-row" id="row-ac">
+          <div class="col-num">04</div>
+          <div class="col-main">
+            <span class="row-title">Setups, Liveries & AC Mods</span>
+            <span class="row-tag">Curated Downloads</span>
+          </div>
+          <div class="col-desc">We provide you with high detailed mods for Assetto Corsa with liveries and setups. We also provide you extremely curated setups for ACC.</div>
+          <div class="col-status"><span class="badge-tool">FREE ACCESS</span></div>
+        </div>
+
+        <!-- ACC Practice Servers Target -->
+        <div class="table-row" id="row-acc">
+          <div class="col-num">05</div>
+          <div class="col-main">
+            <span class="row-title">Dedicated Practice Servers</span>
+            <span class="row-tag">RaceTrim Hosted</span>
+          </div>
+          <div class="col-desc">We host high end servers with custom weather, tracks, and conditions according to your needs using RaceTrim where we will also provide you with practice slots and mock races.</div>
+          <div class="col-status"><span class="badge-active">24/7 ONLINE</span></div>
+        </div>
+
+        <!-- 3rd Button Target: F1 & WEC Watch Parties -->
+        <div class="table-row" id="row-f1">
+          <div class="col-num">06</div>
+          <div class="col-main">
+            <span class="row-title">F1 & WEC Watch Parties</span>
+            <span class="row-tag">Motorsport Paddock</span>
+          </div>
+          <div class="col-desc">We hop into voice channels during Grand Prix weekends and 24 Hours of Le Mans to watch live sessions together.</div>
+          <div class="col-status"><span class="badge-active">RACE WEEKENDS</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Telemetry & Replay Section -->
+    <section class="section-container" id="paddock">
+      <div class="section-header">
+        <div class="section-tag">DATA & PRACTICE</div>
+        <h2 class="section-title">TELEMETRY & SERVER SESSIONS</h2>
+      </div>
+
+      <div class="two-col-layout">
+        
+        <div class="panel-box">
+          <div class="panel-box-header">
+            <span class="box-title">LIVE TELEMETRY TRACE</span>
+            <span class="box-badge">POPOMETER & ACCREPLAYS.COM</span>
+          </div>
+          
+          <div class="graph-wrapper">
+            <canvas id="telemetryCanvas" width="600" height="260"></canvas>
+            <div class="scrubber-legend">
+              <span class="legend-item"><span class="dot throttle-dot"></span> Throttle: <strong id="valThrottle">0%</strong></span>
+              <span class="legend-item"><span class="dot brake-dot"></span> Brake: <strong id="valBrake">0%</strong></span>
+              <span class="legend-item"><span class="dot speed-dot"></span> Speed: <strong id="valSpeed">0 km/h</strong></span>
+            </div>
+            <div class="scrub-instruction">Hover or drag across the curve to inspect telemetry inputs</div>
+          </div>
+        </div>
+
+        <div class="panel-box">
+          <div class="panel-box-header">
+            <span class="box-title">PRACTICE & TELEMETRY</span>
+            <span class="box-badge">SECTOR4 METHOD</span>
+          </div>
+
+          <div class="panel-body-text">
+            <p>
+              We use <strong>Accreplays.com</strong> to compare replays along with <strong>Popometer.io</strong> to review telemetry and inputs.
+            </p>
+            <p>
+              It shows your throttle pick-up, braking points, and minimum corner speed compared to team reference laps. You can spot where you lose time within two minutes.
+            </p>
+            <p>
+              We host high end servers with custom weather, tracks, and conditions according to your needs using RaceTrim where we will also provide you with:
+            </p>
+            <ul class="plain-bullet-list">
+              <li>Dialing in aero, tire pressures, and brake balance</li>
+              <li>Comparing sector times with teammates</li>
+              <li>Testing new cars, BOP updates, and custom setups</li>
+              <li>Practicing clean overtakes in friendly mock sessions</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Fuel Planner -->
+    <section class="section-container" id="fuel-planner">
+      <div class="section-header">
+        <div class="section-tag">PIT STRATEGY</div>
+        <h2 class="section-title">RACE FUEL CALCULATOR</h2>
+      </div>
+
+      <div class="fuel-calculator-panel">
+        <div class="calc-grid">
+          
+          <div class="calc-field">
+            <label class="calc-label">RACE DURATION (HH:MM:SS)</label>
+            <div class="time-picker-row">
+              <div class="time-part">
+                <input type="number" id="fuelHours" min="0" max="24" value="0" class="time-input">
+                <span class="time-unit">HRS</span>
+              </div>
+              <span class="colon">:</span>
+              <div class="time-part">
+                <input type="number" id="fuelMinutes" min="0" max="59" value="25" class="time-input">
+                <span class="time-unit">MIN</span>
+              </div>
+              <span class="colon">:</span>
+              <div class="time-part">
+                <input type="number" id="fuelSeconds" min="0" max="59" value="0" class="time-input">
+                <span class="time-unit">SEC</span>
+              </div>
+            </div>
+            <span class="field-hint">e.g. 00:25:00 (Sprint) or 01:00:00 (60 Min)</span>
+          </div>
+
+          <div class="calc-field">
+            <label class="calc-label">AVERAGE LAP TIME</label>
+            <div class="lap-time-row">
+              <input type="number" id="lapMin" min="0" max="15" value="1" class="time-input short">
+              <span class="colon">:</span>
+              <input type="number" id="lapSec" min="0" max="59" value="54" class="time-input short">
+              <span class="colon">.</span>
+              <input type="number" id="lapMs" min="0" max="999" value="200" class="time-input medium">
+            </div>
+            <span class="field-hint">e.g. 1:54.200 (Nürburgring GP)</span>
+          </div>
+
+          <div class="calc-field">
+            <label class="calc-label">FUEL CONSUMPTION</label>
+            <div class="input-with-unit">
+              <input type="number" id="fuelPerLap" step="0.05" min="0.5" max="10.0" value="2.85" class="time-input wide">
+              <span class="unit-text">Liters / Lap</span>
+            </div>
+            <span class="field-hint">Found in setup electronics or motec</span>
+          </div>
+
+          <div class="calc-field">
+            <label class="calc-label">FORMATION & BUFFER</label>
+            <select id="fuelBuffer" class="select-input">
+              <option value="1">1 Extra Lap Buffer (Standard)</option>
+              <option value="2">Formation Lap + 1 Buffer (Recommended)</option>
+              <option value="0">Zero Buffer (Exact Laps Only)</option>
+            </select>
+            <span class="field-hint">Safety fuel against overtime</span>
+          </div>
+
+        </div>
+
+        <div class="calc-action-bar">
+          <button id="btnCalculateFuel" class="btn btn-primary sound-btn">
+            Calculate Fuel Needed
+          </button>
+        </div>
+
+        <div id="fuelResultCard" class="fuel-result-container">
+          <div class="result-box">
+            <div class="res-item">
+              <span class="res-label">MINIMUM RACE FUEL</span>
+              <span class="res-val" id="resMinFuel">-- L</span>
+            </div>
+            <div class="res-item highlight">
+              <span class="res-label">RECOMMENDED SAFE FUEL</span>
+              <span class="res-val highlight-color" id="resSafeFuel">-- L</span>
+            </div>
+            <div class="res-item">
+              <span class="res-label">EXPECTED TOTAL LAPS</span>
+              <span class="res-val" id="resTotalLaps">-- Laps</span>
+            </div>
+          </div>
+          <div class="res-note" id="resExplanation">Click Calculate to display race fuel requirements.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-left">
+        <img src="logo.png" alt="Sector4 Logo" class="footer-logo">
+        <span class="footer-copy">SECTOR4 MOTORSPORT • RACE HARD. RESPECT EVERYONE.</span>
+      </div>
+      <div class="footer-right">
+        <a href="https://instagram.com/sectorfour.motorsport" target="_blank" rel="noopener noreferrer" class="footer-link sound-btn">
+          <span>Instagram: @sectorfour.motorsport</span>
+        </a>
+        <a href="https://discord.gg/SvsFxPD3V" target="_blank" rel="noopener noreferrer" class="footer-link sound-btn">
+          <span>Discord: discord.gg/SvsFxPD3V</span>
+        </a>
+      </div>
+    </footer>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
