@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050505"><meta name="description" content="Fast pre-race ACC fuel calculator from Sector4 Motorsport">
+  <title>Fuel Calculations // Sector4 Motorsport</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fuel.css">
+  <script src="fuel.js" defer></script>
+</head>
+<body>
+  <header class="fuel-header">
+    <a href="index.html" class="fuel-brand" aria-label="Back to Sector4 Motorsport"><img src="logo.png" alt=""><span>SECTOR<span class="orange">4</span> <small>MOTORSPORT</small></span></a>
+    <span class="header-tag"><span class="live-dot"></span> PIT WALL / FUEL STRATEGY</span>
+  </header>
+  <main class="fuel-shell">
+    <div class="fuel-intro"><span class="eyebrow">S4 // PIT WALL UTILITY</span><h1>FUEL <span>CALCULATIONS.</span></h1><p>Fast fuel and pit strategy for ACC. Built for the grid, including wet races.</p></div>
+    <div class="workflow" aria-label="Fuel calculation steps">
+      <div class="step-track"><span class="step-track-bar" id="stepProgress"></span></div>
+      <nav class="step-nav" aria-label="Calculation progress"><span class="step-indicator current" data-num="1">01 <small>LAP TIME</small></span><span class="step-indicator" data-num="2">02 <small>RACE TIME</small></span><span class="step-indicator" data-num="3">03 <small>PIT STOP</small></span><span class="step-indicator" data-num="4">04 <small>WEATHER</small></span><span class="step-indicator" data-num="5">05 <small>FUEL / LAP</small></span></nav>
+      <form id="fuelForm" novalidate>
+        <section class="fuel-step active" data-step="1" aria-labelledby="lapHeading">
+          <div class="question-id">01 / 05 — PACE</div><h2 id="lapHeading">Your average lap time?</h2><p class="step-help">Use your expected race pace rather than a qualifying lap.</p>
+          <div class="number-row lap-row"><label>MINUTES<input id="lapMinutes" name="lapMinutes" type="number" min="0" max="59" value="1" required inputmode="numeric"></label><span class="separator">:</span><label>SECONDS<input id="lapSeconds" name="lapSeconds" type="number" min="0" max="59" value="54" required inputmode="numeric"></label><span class="separator">.</span><label>MILLISECONDS<input id="lapMillis" name="lapMillis" type="number" min="0" max="999" value="200" required inputmode="numeric"></label></div>
+          <p class="input-example">EXAMPLE: 1:54.200</p>
+        </section>
+        <section class="fuel-step" data-step="2" aria-labelledby="raceHeading" hidden>
+          <div class="question-id">02 / 05 — SESSION</div><h2 id="raceHeading">How long is the race?</h2><p class="step-help">Enter scheduled race time. Timed races can include an additional lap.</p>
+          <label class="field-caption" for="racePreset">QUICK RACE DURATION</label>
+          <select id="racePreset" class="preset-select" aria-label="Select a common race duration"><option value="custom">CUSTOM / ENTER BELOW</option><option value="15">15 MIN / SHORT SPRINT</option><option value="25" selected>25 MIN / GT3 SPRINT EXAMPLE</option><option value="45">45 MIN / GT3 RACE EXAMPLE</option><option value="60">60 MIN / PRIME EXAMPLE</option><option value="90">90 MIN / LONG RACE</option><option value="180">180 MIN / ENDURANCE</option><option value="270">270 MIN / ENDURANCE</option></select>
+          <p class="race-rules-note">Durations are convenient examples, not a live LFM calendar. Pit rules and windows depend on your selected series and session.</p>
+          <div class="number-row"><label>HOURS<input id="raceHours" type="number" min="0" max="24" value="0" required inputmode="numeric"></label><span class="separator">:</span><label>MINUTES<input id="raceMinutes" type="number" min="0" max="59" value="25" required inputmode="numeric"></label><span class="separator">:</span><label>SECONDS<input id="raceSeconds" type="number" min="0" max="59" value="0" required inputmode="numeric"></label></div>
+          <p class="input-example">EXAMPLE: 00:25:00</p>
+        </section>
+        <section class="fuel-step" data-step="3" aria-labelledby="pitHeading" hidden>
+          <div class="question-id">03 / 05 — RACE RULES</div><h2 id="pitHeading">Mandatory pit stop?</h2>
+          <p class="step-help">ACC servers can require a stop, a tyre change or refuelling. Check your race rules.</p>
+          <div class="choice-row" role="group" aria-label="Mandatory pit stop"><label class="choice-pill"><input type="radio" name="mandatory" value="yes"> YES</label><label class="choice-pill"><input type="radio" name="mandatory" value="no" checked> NO</label></div>
+          <div class="conditional-fields" id="pitRulesFields" hidden>
+            <label class="field-caption" for="pitWindowStart">PIT WINDOW (OPTIONAL, MINUTES INTO RACE)</label>
+            <div class="split-inputs"><label>OPENS<input type="number" id="pitWindowStart" min="0" max="1440" step="1" placeholder="e.g. 10" inputmode="numeric"></label><label>CLOSES<input type="number" id="pitWindowEnd" min="0" max="1440" step="1" placeholder="e.g. 20" inputmode="numeric"></label></div>
+            <label class="check-line"><input type="checkbox" id="refuelAllowed" checked> Refuelling permitted by this race</label>
+            <p class="input-example">If refuelling is prohibited, carry all fuel at the start. A mandatory stop does not automatically mean refuelling is allowed.</p>
+          </div>
+        </section>
+        <section class="fuel-step" data-step="4" aria-labelledby="weatherHeading" hidden>
+          <div class="question-id">04 / 05 — CONDITIONS</div><h2 id="weatherHeading">Wet race?</h2>
+          <p class="step-help">Rain affects lap pace, fuel needs per timed race and tyre decisions. Choose your expected conditions.</p>
+          <div class="choice-row" role="group" aria-label="Wet race"><label class="choice-pill"><input type="radio" name="wetRace" value="no" checked> NO / DRY</label><label class="choice-pill"><input type="radio" name="wetRace" value="yes"> YES / RAIN</label></div>
+          <div class="conditional-fields" id="rainFields" hidden>
+            <label class="field-caption" for="rainIntensity">EXPECTED RAIN INTENSITY</label>
+            <select id="rainIntensity"><option value="light">LIGHT RAIN (+9s / lap)</option><option value="medium">MEDIUM RAIN (+15s / lap)</option><option value="heavy">HEAVY RAIN (+24s / lap)</option></select>
+            <p class="input-example">These are editable planning assumptions, not fixed ACC pace penalties. Rain varies by circuit, tyre, grip and driver.</p>
+            <label class="field-caption" for="rainExtraSeconds">ADJUSTED LAP-TIME PENALTY (SECONDS)</label>
+            <input type="number" id="rainExtraSeconds" min="0" max="180" step="0.5" value="9" inputmode="decimal">
+          </div>
+        </section>
+        <section class="fuel-step" data-step="5" aria-labelledby="consumptionHeading" hidden>
+          <div class="question-id">05 / 05 — CONSUMPTION</div><h2 id="consumptionHeading">Litres per lap?</h2><p class="step-help">Enter your measured average consumption in ACC.</p>
+          <div class="number-row one-input"><label>LITRES / LAP<input id="litresPerLap" type="number" min="0.01" max="30" step="0.01" value="2.85" required inputmode="decimal"></label><span class="unit">L / LAP</span></div>
+          <div class="buffer-row"><label for="extraLaps">EXTRA LAPS FOR SAFETY</label><div class="buffer-controls"><button type="button" id="minusBuffer" aria-label="Remove one extra lap">−</button><output id="bufferDisplay" for="extraLaps">1</output><button type="button" id="plusBuffer" aria-label="Add one extra lap">+</button></div><input type="hidden" id="extraLaps" value="1"></div>
+          <p class="input-example">EXTRA LAPS INCLUDE YOUR CHOSEN SAFETY / FORMATION MARGIN.</p>
+        </section>
+        <div class="form-error" id="fuelError" role="alert" aria-live="polite"></div>
+        <div class="form-actions"><button class="back-button" id="backStep" type="button" hidden>← BACK</button><button class="next-button" id="nextStep" type="submit">NEXT STEP <span aria-hidden="true">→</span></button></div>
+      </form>
+      <section class="fuel-results" id="fuelResults" hidden aria-live="polite">
+        <span class="result-kicker"><span class="live-dot"></span> CALCULATION COMPLETE</span>
+        <h2>YOUR RACE FUEL.</h2>
+        <div class="fuel-hero-result"><div><span>RECOMMENDED FUEL</span><strong id="safeFuel">--</strong></div><span class="litres-unit">L</span></div>
+        <div class="result-grid"><div><span>RACE FUEL ONLY</span><strong id="minimumFuel">-- L</strong></div><div><span>EXPECTED RACE LAPS</span><strong id="raceLaps">--</strong></div><div><span>BUFFER LAPS</span><strong id="bufferLaps">1</strong></div><div><span>TOTAL FUELLED LAPS</span><strong id="fuelLaps">--</strong></div></div>
+        <p class="result-note" id="resultNote"></p>
+        <div class="stint-results" id="stintResults" hidden>
+          <div class="stint-title">MANDATORY STOP // FUEL SPLIT</div>
+          <div class="stint-grid"><div><span>STARTING FUEL / STINT 1</span><strong id="stintOneFuel">--</strong><small id="stintOneLaps"></small></div><div><span>ADD AT PIT / STINT 2</span><strong id="stintTwoFuel">--</strong><small id="stintTwoLaps"></small></div></div>
+          <p id="stintNote" class="result-note"></p>
+        </div>
+        <section id="pitPlanner" class="pit-planner" hidden aria-labelledby="plannerHeading">
+          <div class="planner-head"><span class="result-kicker">SECTOR4 // PIT WALL</span><h3 id="plannerHeading">FIND WHEN TO PIT</h3><p>After calculating fuel, use your ACC weather forecast and race position to compare three pit scenarios.</p></div>
+          <button type="button" id="openPlanner" class="planner-open" aria-expanded="false" aria-controls="plannerFields">OPEN PIT STRATEGY <span aria-hidden="true">↗</span></button>
+          <div id="plannerFields" hidden>
+            <div class="camera-forecast">
+              <div><span class="field-caption">ACC WEATHER FORECAST</span><p class="camera-help">Point your phone at the ACC weather forecast. We’ll try to read its labels, then you confirm before using them.</p></div>
+              <button id="takeForecastPhoto" class="camera-button" type="button"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></svg> TAKE WEATHER PHOTO</button>
+              <input id="forecastPhoto" type="file" accept="image/*" capture="environment" hidden aria-label="Capture ACC weather forecast photo">
+              <img id="forecastPreview" alt="Captured ACC weather forecast" hidden>
+              <div id="forecastRecognition" class="recognition-status" role="status" aria-live="polite">Camera optional. Manual forecast entry works without a photo or internet.</div>
+              <div id="ocrReview" class="ocr-review" hidden><strong>PHOTO TEXT — REVIEW BEFORE USING</strong><pre id="ocrText"></pre><p>ACC icons and weather labels may be misread. The suggested values are only a draft.</p><button type="button" id="acceptOcr" class="camera-button secondary">USE DETECTED VALUES</button></div>
+            </div>
+            <p class="input-example">OR ENTER WEATHER MANUALLY:</p>
+            <div class="planner-forecast-grid">
+              <label>NOW<select id="forecastNow"><option value="dry">DRY</option><option value="light">LIGHT RAIN</option><option value="medium">MEDIUM RAIN</option><option value="heavy">HEAVY RAIN</option></select></label>
+              <label>+10 MIN<select id="forecast10"><option value="dry">DRY</option><option value="light">LIGHT RAIN</option><option value="medium">MEDIUM RAIN</option><option value="heavy">HEAVY RAIN</option></select></label>
+              <label>+30 MIN<select id="forecast30"><option value="dry">DRY</option><option value="light">LIGHT RAIN</option><option value="medium">MEDIUM RAIN</option><option value="heavy">HEAVY RAIN</option></select></label>
+            </div>
+            <div class="planner-forecast-grid two-fields"><label>TRACK NOW<select id="trackState"><option value="dry">DRY</option><option value="damp">DAMP / GREASY</option><option value="wet">WET</option><option value="flooded">FLOODED</option></select></label><label>STARTING GRID POSITION<input type="number" id="gridPosition" value="10" min="1" max="100" inputmode="numeric"></label></div>
+            <div class="planner-rule-summary"><span>RULES CHECK</span><p>Check the ACC session MFD for your actual pit window, tyre change, refuel permission and any driver stint limit. Forecast snapshots are estimates, not precise rain arrival times.</p></div>
+            <button type="button" id="analyzePit" class="next-button full-button">GENERATE PIT SCENARIOS →</button>
+            <div id="pitAdvice" class="pit-advice" hidden aria-live="polite"></div>
+          </div>
+        </section>
+        <button class="recalculate" id="recalculate" type="button">↻ RECALCULATE</button>
+      </section>
+    </div>
+    <div class="fuel-disclaimer"><span>ENGINEERING NOTE //</span> Estimates assume the entered fuel use per lap and approximate lap pace. Wet penalties and pit suggestions are scenario estimates, not guaranteed lap times or optimal calls. Check server pit windows, stint limits, refuelling permissions, MFD requirements and track condition before pitting.</div>
+  </main>
+  <footer class="fuel-footer"><span>SECTOR4 MOTORSPORT // PIT WALL</span><a href="index.html">← BACK TO PADDOCK</a></footer>
+</body>
+</html>

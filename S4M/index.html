@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sector4 Motorsport // The Sim Racing Paddock</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="loading-active">
+  <div class="ambient-ribbons" aria-hidden="true"><span class="ribbon ribbon-a"></span><span class="ribbon ribbon-b"></span><span class="ribbon ribbon-c"></span></div>
+
+  <!-- V8 cockpit intro: the supplied recording is played after a user gesture. -->
+  <div id="loader-overlay" class="loader-overlay" role="dialog" aria-modal="true" aria-label="Sector4 V8 engine introduction">
+    <div class="loader-content v8-loader">
+      <div class="loader-hud-header">
+        <div class="loader-brand"><span class="hud-blink-dot"></span><span>SECTOR4 // ENGINE CONTROL UNIT</span></div>
+        <div class="v8-header-status" id="engineState">SYSTEM STANDBY</div>
+      </div>
+      <div class="cockpit-stage">
+        <div class="tach-assembly" id="tachAssembly">
+          <div class="tach-face">
+            <svg class="tach-face-art" viewBox="0 0 360 360" aria-hidden="true">
+              <circle cx="180" cy="180" r="158" fill="none" stroke="#272727" stroke-width="3"/>
+              <path d="M 63 277 A 152 152 0 1 1 297 277" fill="none" stroke="#303030" stroke-width="13" stroke-linecap="round"/>
+              <path d="M 276 65 A 152 152 0 0 1 297 277" fill="none" stroke="#ff5c00" stroke-width="13" stroke-linecap="round"/>
+              <g id="tachTicks"></g><g id="tachNumbers"></g>
+            </svg>
+            <div class="tach-brand">SECTOR<span>4</span></div>
+            <div class="tach-center"><span class="tach-label">ENGINE SPEED</span><strong id="digitalRPM">0000</strong><span class="tach-unit">RPM / V8</span></div>
+            <div class="tach-needle" id="tachNeedle"></div><div class="tach-hub"></div>
+          </div>
+          <div class="tach-subtitle"><span>0 — 7000 RPM</span><span id="revMode">IGNITION OFF</span></div>
+        </div>
+        <div class="cockpit-side">
+          <div class="cockpit-eyebrow">// V8 STARTUP SEQUENCE</div>
+          <div class="ignition-steps"><div id="ignitionStep" class="ignition-step">01 <strong>IGNITION ON</strong></div><div id="starterStep" class="ignition-step">02 <strong>STARTER</strong></div><div id="idleStep" class="ignition-step">03 <strong>ENGINE RUNNING</strong></div></div>
+          <div class="cockpit-telemetry"><span>LIVE ENGINE SIMULATION</span><strong id="cockpitStatus">READY TO START</strong><p>V8 ignition, starter and throttle bursts. Audio playback is synchronized with the RPM display.</p></div>
+          <div class="audio-track-head"><span>ENGINE AUDIO // CADILLAC V8</span><span id="audioClock">00.0 / 09.5</span></div>
+          <canvas id="engineWaveform" width="520" height="86" aria-label="Animated engine recording waveform"></canvas>
+        </div>
+      </div>
+      <div class="loader-status-bar"><div class="status-track"><div id="loaderProgressBar" class="status-fill"></div></div><div class="status-label-row"><span id="loaderPhaseText">ENGINE OFF // AUDIO REQUIRES INTERACTION</span><span id="loaderPercent">0%</span></div></div>
+      <div class="v8-actions">
+        <button id="startV8" class="v8-start-btn" type="button">IGNITION ON / START ENGINE</button>
+        <button id="showSite" class="v8-action v8-show" type="button" hidden>SHOW SITE <span aria-hidden="true">↗</span></button>
+        <button id="revIt" class="v8-action v8-rev" type="button" hidden>REV IT <span aria-hidden="true">↻</span></button>
+        <button id="skipIntro" class="v8-skip" type="button">SKIP INTRO <span aria-hidden="true">→</span></button>
+      </div>
+      <audio id="v8Recording" src="cadillac-v8.mp3" preload="metadata"></audio>
+    </div>
+  </div>
+
+  <!-- Floating Right Vertical Sidebar Dock (Icons Only) -->
+  <aside class="right-vertical-nav" aria-label="Quick Navigation and Platform Dock">
+    <div class="dock-inner">
+      <a href="#hero" class="dock-item logo-item sound-btn nav-link-btn" data-target="hero" title="Sector4 Home">
+        <img src="nav-logo.png" alt="Sector4 Logo" class="dock-logo">
+      </a>
+      <div class="dock-divider"></div>
+      
+      <!-- ACC (Steering / Competizione) -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-acc" title="Assetto Corsa Competizione">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v4"></path>
+          <path d="M12 17v4"></path>
+          <path d="m4.93 4.93 2.83 2.83"></path>
+          <path d="m16.24 16.24 2.83 2.83"></path>
+          <circle cx="12" cy="12" r="2.5"></circle>
+        </svg>
+      </button>
+
+      <!-- AC (Assetto Corsa Racing Flag) -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-ac" title="Assetto Corsa Mods & Liveries">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+          <line x1="4" y1="22" x2="4" y2="15"></line>
+        </svg>
+      </button>
+
+      <!-- 1st Button: LMU / WEC Endurance Trophy -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-endurance" title="Le Mans Ultimate / Driver Swap Endurance">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path>
+          <path d="M6 4h12v5a6 6 0 0 1-12 0V4z"></path>
+        </svg>
+      </button>
+
+      <!-- 2nd Button: LFM Daily Splits Stopwatch -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-lfm" title="Low Fuel Motorsport Daily Races">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"></circle>
+          <path d="M12 9v4l2.5 2.5"></path>
+          <path d="M5 3 2 6"></path>
+          <path d="m22 6-3-3"></path>
+          <path d="M12 2v2"></path>
+        </svg>
+      </button>
+
+      <!-- 3rd Button: F1 / Paddock Speed Gauge -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="row-f1" title="EA Sports F1 & Watch Parties">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 14v-4"></path>
+          <path d="M3.34 17a10 10 0 1 1 17.32 0"></path>
+        </svg>
+      </button>
+
+      <div class="dock-divider"></div>
+
+      <button class="dock-item sound-btn nav-link-btn" data-target="current-drivers" title="Current Drivers" aria-label="Current Drivers">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2"/><path d="M17 11h5M19.5 8.5v5"/></svg>
+      </button>
+
+      <!-- Telemetry Section Jump -->
+      <button class="dock-item sound-btn nav-link-btn" data-target="paddock" title="Telemetry & Accreplays.com">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+      </button>
+
+      <!-- Fuel Calculator Jump -->
+      <a href="fuel.html" class="dock-item sound-btn" title="Fuel Calculations — quick access" aria-label="Open Fuel Calculations">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 22h12"></path>
+          <path d="M4 9h10"></path>
+          <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
+          <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
+        </svg>
+      </a>
+
+      <div class="dock-divider"></div>
+
+      <!-- Instagram External Link -->
+      <a href="https://instagram.com/sectorfour.motorsport" target="_blank" rel="noopener noreferrer" class="dock-item sound-btn instagram-dock" title="Instagram: @sectorfour.motorsport">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+      </a>
+
+      <!-- Discord External Link -->
+      <a href="https://discord.gg/SvsFxPD3V" target="_blank" rel="noopener noreferrer" class="dock-item sound-btn discord-dock" title="Join Sector4 Discord">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+      </a>
+    </div>
+  </aside>
+
+  <main class="page-container">
+
+    <!-- Hero Section: Centered Big Text with Kinetic Reveal Animation -->
+    <section class="hero-section" id="hero">
+      
+      <div class="hero-center-header" id="heroDepthField">
+        <div class="hero-decor hero-decor-left" aria-hidden="true"><span>SECTOR4 / GRID REF 04</span><span>EST. FOR THE PADDOCK</span></div>
+        <div class="hero-decor hero-decor-right" aria-hidden="true"><span>00:00:04</span><span>RACING / COMMUNITY / TELEMETRY</span></div>
+        <div class="hero-race-orbit" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="block-typography-wrapper">
+          <h1 class="block-title animate-title" id="mainBlockTitle">
+            <span class="word-sector">SECTOR</span> <span class="word-four">4<span class="hero-four-stroke" aria-hidden="true"></span></span>
+          </h1>
+          <div class="block-subtitle animate-sub">MOTORSPORT</div>
+        </div>
+        <div class="hero-telemetry-strip" aria-hidden="true"><span>S4 // MOTORSPORT</span><i></i><span>SIM RACING PADDOCK</span><i></i><span>EST. ON TRACK</span></div>
+        <div class="hero-tagline animate-fade">
+          <span class="tagline-dot"></span>
+          <span>THE SIM RACING PADDOCK</span>
+        </div>
+      </div>
+
+      <!-- Centered Action Box & Buttons -->
+      <div class="hero-center-actions animate-fade-delay">
+        <div class="terminal-action-box">
+          <div class="terminal-buttons">
+            <a href="https://discord.gg/SvsFxPD3V" target="_blank" rel="noopener noreferrer" class="btn btn-primary sound-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+              <span>Join Discord</span>
+            </a>
+            <button class="btn btn-secondary sound-btn nav-link-btn" data-target="what-we-do">
+              <span>Know about us</span>
+            </button>
+          </div>
+          <div class="terminal-copy-hint">
+            <code>discord.gg/SvsFxPD3V</code>
+            <button class="copy-link-btn sound-btn" id="copyBtn" title="Copy Discord Invite">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+          </div>
+        </div>
+        <a class="hero-fuel-direct" href="fuel.html" aria-label="Open race fuel calculator immediately"><span class="fuel-pill-dot"></span> FUEL CALCULATIONS <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <div class="hero-desc-centered animate-fade-delay2">
+        <p class="lead-text">
+          Most evenings you'll find us racing LFM splits, chasing a better lap, or figuring out who forgot to brake for Turn 1. We race ACC and Assetto Corsa, from quick sprints to long stints with driver swaps.
+        </p>
+        <p class="sub-text">
+          Between races, we're swapping setups, checking telemetry, or arguing about F1 and WEC in voice chat. Race hard, race fair, and you're one of us.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- What We Do Section -->
+    <section class="section-container s4-chapter s4-chapter-activities" id="what-we-do">
+      <div class="section-header">
+        <div class="section-tag">01 // THE PADDOCK</div>
+        <h2 class="section-title">WHAT WE DO</h2>
+      </div>
+
+      <div class="activity-grid" aria-label="Sector4 paddock activities">
+        <article class="activity-tile s4-entrance" id="row-lfm"><div class="activity-tile-top"><span>01 / THE RACE</span><span class="activity-symbol" aria-hidden="true">🏁</span></div><div class="activity-tile-body"><h3>Daily LFM Racing</h3><span class="activity-category">Sprint / Ranked</span><p>We jump into the same LFM splits, make the strategy calls in voice chat, and go over the race afterwards.</p></div><div class="activity-tile-bottom"><span class="activity-state-dot" aria-hidden="true"></span>DAILY RACING<span class="activity-tile-index">S4 / 01</span></div></article>
+        <article class="activity-tile s4-entrance" id="row-endurance"><div class="activity-tile-top"><span>02 / THE LONG GAME</span><span class="activity-symbol" aria-hidden="true">⏱</span></div><div class="activity-tile-body"><h3>Driver Swap Endurance</h3><span class="activity-category">60 / 180 / 270 MIN</span><p>Longer races mean shared stints, fuel calls, driver swaps, and occasionally someone being told to stop cooking the tyres.</p></div><div class="activity-tile-bottom"><span class="activity-state-dot" aria-hidden="true"></span>TEAM ENDURANCE<span class="activity-tile-index">S4 / 02</span></div></article>
+        <article class="activity-tile s4-entrance" id="row-tickets"><div class="activity-tile-top"><span>03 / RACE CONTROL</span><span class="activity-symbol" aria-hidden="true">⚑</span></div><div class="activity-tile-body"><h3>Incident Reports</h3><span class="activity-category">Discord Ticketing</span><p>Save the race ID, lap, and replay clip while the incident is fresh. Everything is ready when the LFM reporting window opens.</p></div><div class="activity-tile-bottom"><span class="activity-state-dot" aria-hidden="true"></span>RACE REVIEW<span class="activity-tile-index">S4 / 03</span></div></article>
+        <article class="activity-tile s4-entrance" id="row-ac"><div class="activity-tile-top"><span>04 / THE GARAGE</span><span class="activity-symbol" aria-hidden="true">⌘</span></div><div class="activity-tile-body"><h3>Setups, Liveries & Mods</h3><span class="activity-category">ACC + Assetto Corsa</span><p>Trade the setups that actually work, pick up liveries, and find AC mods worth driving. Less guessing in the garage, more laps on track.</p></div><div class="activity-tile-bottom"><span class="activity-state-dot" aria-hidden="true"></span>SHARED GARAGE<span class="activity-tile-index">S4 / 04</span></div></article>
+        <article class="activity-tile s4-entrance" id="row-acc"><div class="activity-tile-top"><span>05 / TRACK TIME</span><span class="activity-symbol" aria-hidden="true">◉</span></div><div class="activity-tile-body"><h3>Practice Servers</h3><span class="activity-category">RaceTrim Hosted</span><p>Work on race starts, overtakes, changing conditions, or a new car without having to sacrifice a ranked session.</p></div><div class="activity-tile-bottom"><span class="activity-state-dot" aria-hidden="true"></span>PRACTICE<span class="activity-tile-index">S4 / 05</span></div></article>
+        <article class="activity-tile s4-entrance" id="row-f1"><div class="activity-tile-top"><span>06 / OFF TRACK</span><span class="activity-symbol" aria-hidden="true">◷</span></div><div class="activity-tile-body"><h3>F1 & WEC Watch Parties</h3><span class="activity-category">Motorsport Paddock</span><p>When we’re not racing, we’re in voice chat watching F1 and endurance, talking strategy, and reacting to questionable pit calls.</p></div><div class="activity-tile-bottom"><span class="activity-state-dot" aria-hidden="true"></span>WATCH TOGETHER<span class="activity-tile-index">S4 / 06</span></div></article>
+      </div>
+    </section>
+
+    <!-- Current Drivers: black terminal-inspired cards match the site's existing panels. -->
+    <section class="section-container" id="current-drivers" aria-labelledby="current-drivers-heading">
+      <div class="section-header">
+        <div class="section-tag">THE GRID // 02 SEATS</div>
+        <h2 class="section-title" id="current-drivers-heading">CURRENT DRIVERS</h2>
+      </div>
+      <p class="drivers-intro">Meet the drivers representing Sector4 on track. Live licenses, personal bests and car selections in one paddock.</p>
+      <div class="drivers-grid">
+        <article class="driver-card" aria-labelledby="driver-jk-name">
+          <div class="driver-topline"><span><span class="driver-signal" aria-hidden="true"></span> DRIVER 01 <span class="driver-sep">/</span> ACTIVE</span><span class="driver-id">S4—001</span></div>
+          <div class="driver-identity"><div><div class="driver-overline">SECTOR4 MOTORSPORT // RACE DRIVER</div><h3 id="driver-jk-name">JKM</h3><div class="driver-subtitle">JAYAKRISHNAN MARATH <span aria-hidden="true">•</span> LOW FUEL MOTORSPORT</div></div><span class="driver-number" aria-hidden="true">01</span></div>
+          <div class="driver-block-head"><span>01 // LIVE LFM LICENSE</span><span class="live-indicator"><span class="pulse-dot" aria-hidden="true"></span> LIVE SOURCE</span></div>
+          <div class="license-viewport">
+            <iframe id="jk-lfm-license" title="Jayakrishnan's live Low Fuel Motorsport license" loading="lazy" scrolling="no" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin" src="https://api.lowfuelmotorsport.de/lfmlicense/307449"></iframe>
+          </div>
+          <div class="license-caption"><span>PROFILE ID // 307449</span><a href="https://api.lowfuelmotorsport.de/lfmlicense/307449" target="_blank" rel="noopener noreferrer">OPEN FULL LICENSE ↗</a></div>
+          <details class="driver-laps"><summary class="driver-laps-toggle"><span class="lap-toggle-text">SHOW ASSETTO CORSA COMPETIZIONE LAPTIMES</span><span class="lap-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="driver-table-wrap"><table class="driver-lap-table"><thead><tr><th>CAR</th><th>TRACK</th><th class="lap-time-col">BEST LAP</th></tr></thead><tbody><tr><td>McLaren 720S GT3 Evo</td><td>Brands Hatch</td><td class="lap-time-col">1:24.317</td></tr><tr><td>BMW M4 GT3</td><td>Spa-Francorchamps Tuning/GP</td><td class="lap-time-col">1:18.200</td></tr><tr><td>BMW M4 GT3</td><td>Nürburgring GP</td><td class="lap-time-col">1:55:500</td></tr><tr><td>BMW M4 GT3</td><td>Mount Panorama</td><td class="lap-time-col">2:03.500</td></tr><tr><td>Huracán GT3 EVO2</td><td>Laguna Seca</td><td class="lap-time-col">1:22.000</td></tr><tr><td>BMW M4 GT3</td><td>Suzuka GP</td><td class="lap-time-col">2:05.322</td></tr><tr><td>McLaren 720S GT3 Evo</td><td>Kyalami Grand Prix Circuit</td><td class="lap-time-col">1:45.637</td></tr><tr><td>Huracán GT3 EVO2</td><td>Misano</td><td class="lap-time-col">1:47:00</td></tr><tr><td>Huracán GT3 EVO2</td><td>Valencia</td><td class="lap-time-col">1:32:00</td></tr><tr><td>BMW M4 GT3</td><td>Paul Ricard</td><td class="lap-time-col">1:55:00</td></tr></tbody></table></div><div class="driver-foot"><span>LAP RECORDS // 10 PERSONAL BESTS</span><span>SECTOR4 PADDOCK</span></div></details>
+        </article>
+        <article class="driver-card" aria-labelledby="driver-cap-name">
+          <div class="driver-topline"><span><span class="driver-signal" aria-hidden="true"></span> DRIVER 02 <span class="driver-sep">/</span> ROSTERED</span><span class="driver-id">S4—002</span></div>
+          <div class="driver-identity"><div><div class="driver-overline">SECTOR4 MOTORSPORT // RACE DRIVER</div><h3 id="driver-cap-name">CAP</h3><div class="driver-subtitle">LOW FUEL MOTORSPORT</div></div><span class="driver-number" aria-hidden="true">02</span></div>
+          <div class="driver-block-head"><span>01 // LIVE LFM LICENSE</span><span class="live-indicator"><span class="pulse-dot" aria-hidden="true"></span> LIVE SOURCE</span></div>
+          <div class="license-viewport"><iframe id="cap-lfm-license" title="CAP live Low Fuel Motorsport license" loading="lazy" scrolling="no" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin" src="https://api.lowfuelmotorsport.de/lfmlicense/193614"></iframe></div>
+          <div class="license-caption"><span>PROFILE ID // 193614</span><a href="https://api.lowfuelmotorsport.de/lfmlicense/193614" target="_blank" rel="noopener noreferrer">OPEN FULL LICENSE ↗</a></div>
+          <details class="driver-laps"><summary class="driver-laps-toggle"><span class="lap-toggle-text">SHOW ASSETTO CORSA COMPETIZIONE LAPTIMES</span><span class="lap-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="driver-table-wrap"><table class="driver-lap-table"><thead><tr><th>CAR</th><th>TRACK</th><th class="lap-time-col">BEST LAP</th></tr></thead><tbody><tr><td colspan="3" class="empty-records">Lap times and car details will be added after review.</td></tr></tbody></table></div><div class="driver-foot"><span>LAP RECORDS // PENDING</span><span>SECTOR4 PADDOCK</span></div></details>
+        </article>
+      </div>
+      <p class="drivers-source-note">LFM licenses are loaded from Low Fuel Motorsport where connected. JKM lap times are self-reported from his Steam profile, not independently verified. CAP lap records are pending.</p>
+    </section>
+
+    <!-- Telemetry & Replay Section -->
+    <section class="section-container s4-chapter s4-chapter-paddock" id="paddock">
+      <div class="section-header">
+        <div class="section-tag">02 // PERFORMANCE ENGINEERING</div>
+        <h2 class="section-title">TELEMETRY & SERVER SESSIONS</h2>
+      </div>
+
+      <div class="two-col-layout">
+        
+        <div class="panel-box">
+          <div class="panel-box-header">
+            <span class="box-title">CORNER INPUTS // TRAIL BRAKING</span>
+            <span class="box-badge">POPOMETER & ACCREPLAYS.COM</span>
+          </div>
+          
+          <div class="graph-wrapper">
+            <canvas id="telemetryCanvas" width="600" height="260"></canvas>
+            <div class="scrubber-legend">
+              <span class="legend-item"><span class="dot throttle-dot"></span> Throttle: <strong id="valThrottle">0%</strong></span>
+              <span class="legend-item"><span class="dot brake-dot"></span> Brake: <strong id="valBrake">0%</strong></span>
+              <span class="legend-item"><span class="dot speed-dot"></span> Speed: <strong id="valSpeed">0 km/h</strong></span>
+            </div>
+            <div class="scrub-instruction">Illustrative corner sequence: threshold braking → trail release → progressive throttle. Drag to inspect.</div>
+          </div>
+        </div>
+
+        <div class="panel-box">
+          <div class="panel-box-header">
+            <span class="box-title">PRACTICE & TELEMETRY</span>
+            <span class="box-badge">SECTOR4 METHOD</span>
+          </div>
+
+          <div class="panel-body-text">
+            <p>
+              We use <strong>Accreplays.com</strong> to compare replays along with <strong>Popometer.io</strong> to review telemetry and inputs.
+            </p>
+            <p>
+              It shows your throttle pick-up, braking points, and minimum corner speed compared to team reference laps. Compare the braking release and throttle pickup to see where you are leaving time on the table.
+            </p>
+            <p>
+              We host high end servers with custom weather, tracks, and conditions according to your needs using RaceTrim where we will also provide you with:
+            </p>
+            <ul class="plain-bullet-list">
+              <li>Dialing in aero, tire pressures, and brake balance</li>
+              <li>Comparing sector times with teammates</li>
+              <li>Testing new cars, BOP updates, and custom setups</li>
+              <li>Practicing clean overtakes in friendly mock sessions</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Fast, standalone calculator. Loads directly without the V8 intro. -->
+    <section class="section-container s4-chapter s4-chapter-fuel" id="fuel-planner">
+      <div class="section-header"><div class="section-tag">03 // RACE OPERATIONS</div><h2 class="section-title">FUEL CALCULATIONS</h2></div>
+      <div class="fuel-launch-card"><div><span class="fuel-launch-kicker">NO INTRO. NO WAITING.</span><h3>READY BEFORE LIGHTS OUT.</h3><p>Plan race fuel, mandatory pit stops and wet-weather strategy. Open the calculator instantly on your phone, without the V8 intro.</p></div><a href="fuel.html" class="fuel-launch-button">OPEN FUEL CALCULATOR <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer s4-chapter-footer">
+      <div class="footer-left">
+        <img src="logo.png" alt="Sector4 Logo" class="footer-logo">
+        <span class="footer-copy">SECTOR4 MOTORSPORT • RACE HARD. RESPECT EVERYONE.</span>
+      </div>
+      <div class="footer-right">
+        <a href="https://instagram.com/sectorfour.motorsport" target="_blank" rel="noopener noreferrer" class="footer-link sound-btn">
+          <span>Instagram: @sectorfour.motorsport</span>
+        </a>
+        <a href="https://discord.gg/SvsFxPD3V" target="_blank" rel="noopener noreferrer" class="footer-link sound-btn">
+          <span>Discord: discord.gg/SvsFxPD3V</span>
+        </a>
+      </div>
+    </footer>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
